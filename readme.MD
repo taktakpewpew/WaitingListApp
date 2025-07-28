@@ -67,7 +67,7 @@ You can test manually the server using postman or CURL:
 
 - adding USER to waitingList
 ```bash
-    curl -X POST http://localhost:8000/waiting-list/ \
+    curl -X POST http://localhost:8000/waiting-list/join \
      -H "Content-Type: application/json" \
      -d '{"user_id":"1", "representation_id":"rep_002", "offer_id": "off_001", "quantity": 5}'
 ```
