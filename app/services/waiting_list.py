@@ -1,3 +1,4 @@
+from sqlalchemy import Sequence, Row
 from sqlalchemy.orm import Session
 
 from app.crud.waiting_list import get_position_for_waitinglist_entry
@@ -16,3 +17,6 @@ def compute_position_for_waitinglist_entry(db: Session, entry: WaitingListEntry)
 def compute_position_for_waitinglist_entries(db: Session, entries: list[WaitingListEntry]) -> list[WaitingListOut]:
     """Computes position for list of Waitinglist entries."""
     return [compute_position_for_waitinglist_entry(db, e) for e in entries]
+
+def format_position_for_waitinglist_entries(entries: Sequence[Row]) -> list[WaitingListOut]:
+    return [WaitingListOut.model_validate(row[0], from_attributes=True).model_copy(update={"position": row[1]}) for row in entries]
