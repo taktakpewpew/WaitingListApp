@@ -6,7 +6,7 @@ from app.crud.user import create_user_if_not_exist
 from app.db.session import get_db
 from app.schemas import UserCreate, UserOut
 from app.schemas.waiting_list import WaitingListOut
-from app.services.waiting_list import compute_position_for_waitinglist_entries
+from app.services.waiting_list import compute_position_for_waitinglist_entries, format_position_for_waitinglist_entries
 
 router = APIRouter()
 
@@ -28,4 +28,4 @@ def get_user_entries(user_id: int, db: Session = Depends(get_db)):
     :param db:
     :return: list of WaitingListEntries associated to user_id
     """
-    return compute_position_for_waitinglist_entries(db, waiting_list.get_user_waitinglist_entries(db, user_id))
+    return format_position_for_waitinglist_entries(waiting_list.get_entries_with_position(db, user_id=user_id))

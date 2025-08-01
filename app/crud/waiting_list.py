@@ -1,4 +1,6 @@
 from typing import Optional
+
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from app.exceptions.inventory_exceptions import InventoryNotFound
 from app.exceptions.offer_exceptions import OfferNotFound
@@ -93,7 +95,7 @@ def delete_entry(db: Session, entry_id: int):
     db.commit()
 
 
-def get_entries_for_event_rep_offer(db: Session, event_id: Optional[str], representation_id: Optional[str], offer_id: Optional[str]):
+def get_entries_for_event_rep_offer(db: Session, event_id: Optional[str] = None, representation_id: Optional[str] = None, offer_id: Optional[str] = None):
     """
     Returns all waitinglist entries matching intersection of input filters
     :param db: SQLAlchemy session
@@ -114,3 +116,36 @@ def get_entries_for_event_rep_offer(db: Session, event_id: Optional[str], repres
         query = query.join(Representation).join(Event).filter(Event.id == event_id)
 
     return query.order_by(WaitingListEntry.timestamp.asc()).all()
+
+
+def get_entries_with_position(db: Session, event_id: Optional[str] = None, representation_id: Optional[str] = None, offer_id: Optional[str] = None, user_id: Optional[int] = None):
+    """
+    Returns all waitinglist entries matching intersection of input filters
+    :param db: SQLAlchemy session
+    :param event_id: filter value for events
+    :param representation_id: filter value for representation
+    :param offer_id: filter value for offer
+    :return: waitinglist entries matching intersection of input filters.
+    """
+    query = select(
+        WaitingListEntry,
+        func.row_number().over(
+            partition_by=(WaitingListEntry.offer_id, WaitingListEntry.representation_id),
+            order_by=WaitingListEntry.timestamp.asc()
+        ).label("position")
+    )
+
+    if representation_id:
+        query = query.filter(WaitingListEntry.representation_id == representation_id)
+
+    if offer_id:
+        query = query.filter(WaitingListEntry.offer_id == offer_id)
+
+    if user_id:
+        query = query.filter(WaitingListEntry.user_id == user_id)
+
+    if event_id:
+        #we checked at insert for waitingList that representation.event_id = offer.event_id
+        query = query.join(Representation).join(Event).filter(Event.id == event_id)
+
+    return db.execute(query).all()

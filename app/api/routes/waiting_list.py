@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.schemas import WaitingListCreate, WaitingListOut
 from app.crud import waiting_list
-from app.services.waiting_list import compute_position_for_waitinglist_entries, compute_position_for_waitinglist_entry
+from app.services.waiting_list import compute_position_for_waitinglist_entries, compute_position_for_waitinglist_entry, \
+    format_position_for_waitinglist_entries
 
 router = APIRouter()
 
@@ -51,4 +52,4 @@ def organizer_view(event_id: Optional[str] = Query(None), representation_id: Opt
     :param db: SQLAlchemy session
     :return: list of WaitingListOut including positions in the queue.
     """
-    return compute_position_for_waitinglist_entries(db, waiting_list.get_entries_for_event_rep_offer(db=db, event_id=event_id, representation_id=representation_id, offer_id=offer_id))
+    return format_position_for_waitinglist_entries(waiting_list.get_entries_with_position(db, event_id=event_id, representation_id=representation_id, offer_id=offer_id))
